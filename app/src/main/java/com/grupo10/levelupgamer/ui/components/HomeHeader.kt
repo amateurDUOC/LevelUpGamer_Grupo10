@@ -24,7 +24,8 @@ fun HomeHeader(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onNotificationClick: () -> Unit,
-    notificationCount: Int = 0
+    notificationCount: Int = 0,
+    onLogoutClick: () -> Unit = {}
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -85,6 +86,23 @@ fun HomeHeader(
                             )
                         }
                     }
+                }
+
+                // Botón de Logout
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.2f))
+                        .clickable { onLogoutClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_lock_power_off),
+                        contentDescription = "Cerrar Sesión",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
         }
