@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Círculo de fondo con gradiente -->
+    <path
+        android:fillColor="#6200EE"
+        android:pathData="M100,20 A80,80 0,1,1 100,180 A80,80 0,1,1 100,20 Z" />
+
+    <!-- Gamepad - Base -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,85 Q50,85 45,90 L40,110 Q38,118 45,120 L60,120 L70,120 L70,85 Z" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M140,85 Q150,85 155,90 L160,110 Q162,118 155,120 L140,120 L130,120 L130,85 Z" />
+
+    <!-- Centro del gamepad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M70,85 L130,85 L130,120 L70,120 Z" />
+
+    <!-- D-pad -->
+    <path
+        android:fillColor="#6200EE"
+        android:pathData="M73,95 L83,95 L83,90 L88,90 L88,95 L83,95 L83,100 L88,100 L88,105 L83,105 L83,110 L78,110 L78,105 L73,105 Z" />
+
+    <!-- Botones A B -->
+    <path
+        android:fillColor="#03DAC5"
+        android:pathData="M120,95 m-5,0 a5,5 0,1,1 10,0 a5,5 0,1,1 -10,0" />
+
+    <path
+        android:fillColor="#03DAC5"
+        android:pathData="M110,105 m-5,0 a5,5 0,1,1 10,0 a5,5 0,1,1 -10,0" />
+
+    <!-- Estrella de nivel up -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M100,130 L105,145 L120,145 L108,154 L113,169 L100,160 L87,169 L92,154 L80,145 L95,145 Z" />
+
+    <!-- Flecha hacia arriba (level up) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M100,50 L110,65 L105,65 L105,75 L95,75 L95,65 L90,65 Z" />
+</vector>
+

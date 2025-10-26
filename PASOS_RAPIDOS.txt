@@ -1,0 +1,71 @@
+# 🚀 GUÍA RÁPIDA - 5 PASOS
+
+## ✅ Archivos Ya Corregidos
+```
+✅ gradle-wrapper.properties → Gradle 8.7
+✅ gradle.properties → +3 propiedades
+✅ app/build.gradle.kts → compileSdk 34
+```
+
+---
+
+## 🎯 HAZ ESTO AHORA
+
+### 1️⃣ LIMPIA CACHE (1 min)
+```
+Doble clic: clean_cache_completo.bat
+```
+
+### 2️⃣ INVALIDA CACHES (2 min)
+```
+File > Invalidate Caches / Restart
+☑ Clear file system cache
+☑ Clear downloaded shared indexes
+Click: Invalidate and Restart
+```
+
+### 3️⃣ SINCRONIZA (2 min)
+```
+File > Sync Project with Gradle Files
+(Descarga Gradle 8.7)
+```
+
+### 4️⃣ COMPILA (3 min)
+```
+Build > Clean Project
+Build > Rebuild Project
+```
+
+### 5️⃣ EJECUTA (1 min)
+```
+Run > Run 'app'
+```
+
+---
+
+## ⏱️ Total: 9 minutos
+
+---
+
+## ✅ Éxito Si Ves:
+```
+BUILD SUCCESSFUL in 2m 30s
+```
+
+## ❌ Falla Si Ves:
+```
+Error while executing jlink.exe
+```
+→ Repite PASO 1 y 2
+
+---
+
+## 📖 Más Info:
+- ACCION_INMEDIATA.md
+- ESTADO_ACTUAL.md
+- SOLUCION_ERROR_JLINK.md
+
+---
+
+**¡Comienza ahora! 🚀**
+
