@@ -12,9 +12,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.grupo10.levelupgamer.ui.screens.AnimatedSplashScreen
+import com.grupo10.levelupgamer.ui.screens.CartScreen
 import com.grupo10.levelupgamer.ui.screens.HomeScreen
 import com.grupo10.levelupgamer.ui.screens.LoginScreen
 import com.grupo10.levelupgamer.ui.theme.LevelUpGamerTheme
+import com.grupo10.levelupgamer.viewmodel.CartViewModel
 import com.grupo10.levelupgamer.viewmodel.LoginViewModel
 
 class MainActivity : FragmentActivity() {
@@ -25,6 +27,7 @@ class MainActivity : FragmentActivity() {
             LevelUpGamerTheme {
                 var showSplash by remember { mutableStateOf(true) }
                 val navController = rememberNavController()
+                val cartViewModel: CartViewModel = viewModel()
 
                 if (showSplash) {
                     AnimatedSplashScreen(
@@ -39,6 +42,8 @@ class MainActivity : FragmentActivity() {
                             LoginScreen(
                                 viewModel = loginViewModel,
                                 onLoginSuccess = {
+                                    // Configurar usuario en CartViewModel (usar ID 1 por defecto)
+                                    cartViewModel.setCurrentUser(1)
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -48,10 +53,23 @@ class MainActivity : FragmentActivity() {
                         composable("home") {
                             HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
+                                cartViewModel = cartViewModel,
                                 onLogout = {
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }
+                                },
+                                onNavigateToCart = {
+                                    navController.navigate("cart")
+                                }
+                            )
+                        }
+                        composable("cart") {
+                            CartScreen(
+                                cartViewModel = cartViewModel,
+                                onCheckoutClick = {
+                                    // TODO: Implementar navegación a checkout
+                                    navController.popBackStack()
                                 }
                             )
                         }

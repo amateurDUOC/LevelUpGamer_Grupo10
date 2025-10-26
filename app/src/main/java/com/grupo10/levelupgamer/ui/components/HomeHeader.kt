@@ -44,6 +44,7 @@ fun HomeHeader(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 // Barra de búsqueda
                 SearchBar(
                     searchQuery = searchQuery,
