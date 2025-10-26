@@ -19,7 +19,8 @@ import com.grupo10.levelupgamer.model.ProductsData
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onNotificationClick: () -> Unit = {}
+    onNotificationClick: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showNotificationDialog by remember { mutableStateOf(false) }
@@ -42,7 +43,8 @@ fun HomeScreen(
                     showNotificationDialog = true
                     onNotificationClick()
                 },
-                notificationCount = notificationCount.value
+                notificationCount = notificationCount.value,
+                onLogoutClick = onLogout
             )
         },
         bottomBar = {
