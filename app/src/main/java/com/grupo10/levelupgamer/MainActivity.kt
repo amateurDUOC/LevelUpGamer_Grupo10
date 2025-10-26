@@ -17,9 +17,11 @@ import com.grupo10.levelupgamer.ui.screens.AnimatedSplashScreen
 import com.grupo10.levelupgamer.ui.screens.HomeScreen
 import com.grupo10.levelupgamer.ui.screens.LoginScreen
 import com.grupo10.levelupgamer.ui.screens.QRScannerScreen
+import com.grupo10.levelupgamer.ui.screens.SignupScreen
 import com.grupo10.levelupgamer.ui.theme.LevelUpGamerTheme
 import com.grupo10.levelupgamer.viewmodel.LoginViewModel
 import com.grupo10.levelupgamer.viewmodel.QRScannerViewModel
+import com.grupo10.levelupgamer.viewmodel.SignupViewModel
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +48,24 @@ class MainActivity : FragmentActivity() {
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
+                                },
+                                onNavigateToSignup = {
+                                    navController.navigate("signup")
+                                }
+                            )
+                        }
+
+                        composable("signup") {
+                            val signupViewModel: SignupViewModel = viewModel()
+                            SignupScreen(
+                                viewModel = signupViewModel,
+                                onSignupSuccess = {
+                                    navController.navigate("home") {
+                                        popUpTo("login") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToLogin = {
+                                    navController.popBackStack()
                                 }
                             )
                         }
