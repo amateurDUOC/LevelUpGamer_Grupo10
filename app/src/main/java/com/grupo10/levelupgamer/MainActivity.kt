@@ -8,16 +8,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.grupo10.levelupgamer.ui.screens.AnimatedSplashScreen
 import com.grupo10.levelupgamer.ui.screens.CartScreen
 import com.grupo10.levelupgamer.ui.screens.HomeScreen
 import com.grupo10.levelupgamer.ui.screens.LoginScreen
+import com.grupo10.levelupgamer.ui.screens.QRScannerScreen
 import com.grupo10.levelupgamer.ui.theme.LevelUpGamerTheme
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
 import com.grupo10.levelupgamer.viewmodel.LoginViewModel
+import com.grupo10.levelupgamer.viewmodel.QRScannerViewModel
 
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +54,17 @@ class MainActivity : FragmentActivity() {
                                 }
                             )
                         }
-                        composable("home") {
+
+                        composable(
+                            route = "home?productId={productId}",
+                            arguments = listOf(
+                                navArgument("productId") {
+                                    type = NavType.IntType
+                                    defaultValue = -1
+                                }
+                            )
+                        ) { backStackEntry ->
+                            val productId = backStackEntry.arguments?.getInt("productId") ?: -1
                             HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 cartViewModel = cartViewModel,
@@ -59,17 +73,24 @@ class MainActivity : FragmentActivity() {
                                         popUpTo("home") { inclusive = true }
                                     }
                                 },
-                                onNavigateToCart = {
-                                    navController.navigate("cart")
-                                }
+                                onNavigateToQRScanner = {
+                                    navController.navigate("qr_scanner")
+                                },
+                                scannedProductId = if (productId > 0) productId else null
                             )
                         }
-                        composable("cart") {
-                            CartScreen(
-                                cartViewModel = cartViewModel,
-                                onCheckoutClick = {
-                                    // TODO: Implementar navegación a checkout
+
+                        composable("qr_scanner") {
+                            val qrViewModel: QRScannerViewModel = viewModel()
+                            QRScannerScreen(
+                                viewModel = qrViewModel,
+                                onBackPressed = {
                                     navController.popBackStack()
+                                },
+                                onProductFound = { productId ->
+                                    navController.navigate("home?productId=$productId") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
                                 }
                             )
                         }

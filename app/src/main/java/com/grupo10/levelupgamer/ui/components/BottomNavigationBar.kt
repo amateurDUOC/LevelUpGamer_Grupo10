@@ -45,13 +45,21 @@ fun BottomNavigationBar(
                 onClick = { onTabSelected(0) }
             )
 
+            // Botón QR Scanner
+            BottomNavItem(
+                icon = R.drawable.ic_qr_code,
+                label = "Leer QR",
+                isSelected = selectedTab == 1,
+                onClick = { onTabSelected(1) }
+            )
+
             // Botón Carrito
             Box {
                 BottomNavItem(
                     icon = R.drawable.ic_cart,
                     label = "Carrito",
-                    isSelected = selectedTab == 1,
-                    onClick = { onTabSelected(1) }
+                    isSelected = selectedTab == 2,
+                    onClick = { onTabSelected(2) }
                 )
 
                 // Badge con contador del carrito
@@ -78,8 +86,8 @@ fun BottomNavigationBar(
             BottomNavItem(
                 icon = R.drawable.ic_menu,
                 label = "Menú",
-                isSelected = selectedTab == 2,
-                onClick = { onTabSelected(2) }
+                isSelected = selectedTab == 3,
+                onClick = { onTabSelected(3) }
             )
         }
     }

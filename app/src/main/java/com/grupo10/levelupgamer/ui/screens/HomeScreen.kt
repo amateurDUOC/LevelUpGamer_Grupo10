@@ -24,12 +24,13 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onNotificationClick: () -> Unit = {},
     onLogout: () -> Unit = {},
-    onNavigateToCart: () -> Unit = {},
-    cartViewModel: CartViewModel = viewModel()
+    onNavigateToQRScanner: () -> Unit = {},
+    scannedProductId: Int? = null
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
+    var showProductDialog by remember { mutableStateOf<com.grupo10.levelupgamer.model.Product?>(null) }
 
     // Simular contador de notificaciones
     val notificationCount = remember { mutableStateOf(3) }
@@ -62,6 +63,16 @@ fun HomeScreen(
         }
     }
 
+    // Mostrar producto escaneado si existe
+    LaunchedEffect(scannedProductId) {
+        if (scannedProductId != null) {
+            val product = ProductsData.sampleProducts.find { it.id == scannedProductId }
+            if (product != null) {
+                showProductDialog = product
+            }
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -82,8 +93,13 @@ fun HomeScreen(
             BottomNavigationBar(
                 modifier = Modifier,
                 selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                cartItemCount = cartItemCount
+                onTabSelected = { tab ->
+                    selectedTab = tab
+                    if (tab == 1) { // QR Scanner tab
+                        onNavigateToQRScanner()
+                    }
+                },
+                cartItemCount = cartItemCount.value
             )
         }
     ) { paddingValues ->
@@ -223,6 +239,41 @@ fun HomeScreen(
                     showNotificationDialog = false
                     notificationCount.value = 0
                 }) {
+                    Text("Cerrar")
+                }
+            }
+        )
+    }
+
+    // Diálogo de producto escaneado
+    showProductDialog?.let { product ->
+        AlertDialog(
+            onDismissRequest = { showProductDialog = null },
+            title = {
+                Text(text = "Producto escaneado")
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ProductCard(
+                        product = product,
+                        onProductClick = { },
+                        onAddToCart = {
+                            cartItemCount.value += 1
+                            showProductDialog = null
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    cartItemCount.value += 1
+                    showProductDialog = null
+                }) {
+                    Text("Agregar al carrito")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showProductDialog = null }) {
                     Text("Cerrar")
                 }
             }
