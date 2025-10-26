@@ -3,6 +3,7 @@ package com.example.levelupgamer_grupo10.viewmodel
 import androidx.lifecycle.ViewModel
 import com.example.levelupgamer_grupo10.model.LoginErrors
 import com.example.levelupgamer_grupo10.model.LoginUIState
+import com.example.levelupgamer_grupo10.util.EmailValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -12,28 +13,71 @@ class LoginViewModel : ViewModel() {
 
     val state : StateFlow<LoginUIState> = _state
 
+    private companion object {
+        private const val VALID_EMAIL = "admin@duoc.cl"
+        private const val VALID_PASSWORD = "123456"
+    }
+
     fun onEmailChange(value : String) {
-        _state.update { it.copy(email = value, errors = it.errors.copy(email = null)) }
+        _state.update { it.copy(email = value, errors = LoginErrors(), loginError = null) }
     }
 
     fun onPasswordChange(value : String) {
-        _state.update { it.copy(password = value, errors = it.errors.copy(password = null)) }
+        _state.update { it.copy(password = value, errors = LoginErrors(), loginError = null) }
     }
 
-    fun validateLoginForm() : Boolean {
-        val actualState = _state.value
-        val errors = LoginErrors(
-            email = if (actualState.email.isBlank()) "Debe ingresar un correo electrónico" else null,
-            password = if (actualState.password.isBlank()) "Debe ingresar una contraseña" else null
-        )
+    fun login() {
+        _state.update { it.copy(loginError = null) }
 
-        val foundErrors = listOfNotNull(
-            errors.email,
-            errors.password
-        ).isNotEmpty()
+        if (!validateForm()) return
 
-        _state.update { it.copy(errors = errors) }
+        val currentState = _state.value
+        if (currentState.email == VALID_EMAIL && currentState.password == VALID_PASSWORD) {
+            _state.update { it.copy(loginSuccess = true) }
+        } else {
+            _state.update { it.copy(loginError = "Correo o contraseña incorrectos") }
+        }
+    }
 
-        return !foundErrors
+    // Solicita a la vista que inicie la autenticación biométrica
+    fun onBiometricLoginRequested() {
+        _state.update { it.copy(loginError = null, showBiometricPrompt = true) }
+    }
+
+    // La vista llama a este método después de mostrar el diálogo biométrico
+    fun onBiometricPromptHandled() {
+        _state.update { it.copy(showBiometricPrompt = false) }
+    }
+
+    // La vista llama a este método si la autenticación biométrica es exitosa
+    fun onBiometricAuthSuccess() {
+        _state.update { it.copy(loginSuccess = true) }
+    }
+
+    // La vista llama a este método si la autenticación biométrica falla o hay un error
+    fun onBiometricAuthError(error: String) {
+        _state.update { it.copy(loginError = error) }
+    }
+
+    private fun validateForm(): Boolean {
+        val currentState = _state.value
+        val emailError = if (currentState.email.isBlank()) {
+            "Debe ingresar un correo electrónico"
+        } else if (currentState.email != VALID_EMAIL && !EmailValidator.isValidEmail(currentState.email)) {
+            "El formato del correo no es válido"
+        } else {
+            null
+        }
+
+        val passwordError = if (currentState.password.isBlank()) "Debe ingresar una contraseña" else null
+
+        val hasErrors = emailError != null || passwordError != null
+
+        if (hasErrors) {
+            _state.update {
+                it.copy(errors = LoginErrors(email = emailError, password = passwordError))
+            }
+        }
+        return !hasErrors
     }
 }
