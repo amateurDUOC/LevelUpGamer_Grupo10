@@ -5,15 +5,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.grupo10.levelupgamer.ui.components.HomeHeader
 import com.grupo10.levelupgamer.ui.components.BottomNavigationBar
 import com.grupo10.levelupgamer.ui.components.ProductCard
 import com.grupo10.levelupgamer.ui.components.ProductGridCard
 import com.grupo10.levelupgamer.model.ProductsData
+import com.grupo10.levelupgamer.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,8 +35,33 @@ fun HomeScreen(
     // Simular contador de notificaciones
     val notificationCount = remember { mutableStateOf(3) }
 
-    // Simular contador de items en carrito
-    val cartItemCount = remember { mutableStateOf(5) }
+    // Observar contador de items en carrito desde el ViewModel
+    val cartItems by cartViewModel.getCartItems()?.observeAsState(emptyList()) ?: remember { mutableStateOf(emptyList()) }
+    val cartItemCount = cartItems.sumOf { it.quantity }
+
+    // Observar resultado de agregar al carrito
+    val addToCartResult by cartViewModel.addToCartResult.observeAsState()
+
+    // Snackbar para mostrar mensaje
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Mostrar Snackbar cuando se agrega un producto
+    LaunchedEffect(addToCartResult) {
+        if (addToCartResult != null) {
+            snackbarHostState.showSnackbar(
+                message = addToCartResult!!,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
+    // Manejar cambio de tab (navegar al carrito cuando se selecciona)
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 1) {
+            onNavigateToCart()
+            selectedTab = 0 // Reset para poder volver a seleccionar
+        }
+    }
 
     // Mostrar producto escaneado si existe
     LaunchedEffect(scannedProductId) {
@@ -47,6 +75,7 @@ fun HomeScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             HomeHeader(
                 modifier = Modifier,
@@ -98,29 +127,6 @@ fun HomeScreen(
                 )
             }
 
-            // Sección de categorías
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Categorías",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            items(5) { index ->
-                CategoryCard(
-                    title = when(index) {
-                        0 -> "Juegos"
-                        1 -> "Consolas"
-                        2 -> "Accesorios"
-                        3 -> "Merchandising"
-                        else -> "Ofertas"
-                    }
-                )
-            }
-
             // Sección de Productos en Oferta
             item {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -145,8 +151,7 @@ fun HomeScreen(
                                 // TODO: Navegar a detalle del producto
                             },
                             onAddToCart = { product ->
-                                // Agregar al carrito
-                                cartItemCount.value += 1
+                                cartViewModel.addToCart(product)
                             }
                         )
                     }
@@ -173,8 +178,7 @@ fun HomeScreen(
                         // TODO: Navegar a detalle del producto
                     },
                     onAddToCart = { product ->
-                        // Agregar al carrito
-                        cartItemCount.value += 1
+                        cartViewModel.addToCart(product)
                     }
                 )
             }
@@ -278,36 +282,6 @@ fun HomeScreen(
 }
 
 @Composable
-fun CategoryCard(
-    title: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(80.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = androidx.compose.ui.Alignment.CenterStart
-        ) {
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-    }
-}
-
-@Composable
 fun NotificationItem(
     title: String,
     message: String,
@@ -330,3 +304,4 @@ fun NotificationItem(
         )
     }
 }
+
