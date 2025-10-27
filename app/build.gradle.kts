@@ -61,6 +61,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
+    implementation(libs.androidx.compose.runtime.livedata)
     implementation(libs.lottie)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.biometric)
