@@ -54,7 +54,8 @@ import com.grupo10.levelupgamer.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onNavigateToSignup: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -243,9 +244,7 @@ fun LoginScreen(
                 ) {
                     Text("¿No tienes una cuenta?")
                     TextButton(
-                        onClick = {
-                            // TODO: Navegar a pantalla de registro
-                        }
+                        onClick = onNavigateToSignup
                     ) {
                         Text("Regístrate")
                     }
