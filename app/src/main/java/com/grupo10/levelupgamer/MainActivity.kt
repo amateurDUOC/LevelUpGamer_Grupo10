@@ -65,6 +65,8 @@ class MainActivity : FragmentActivity() {
                             SignupScreen(
                                 viewModel = signupViewModel,
                                 onSignupSuccess = {
+                                    // Configurar usuario en CartViewModel (usar ID 1 por defecto)
+                                    cartViewModel.setCurrentUser(1)
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
