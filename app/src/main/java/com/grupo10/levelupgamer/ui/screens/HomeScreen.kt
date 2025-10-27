@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,11 +16,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.grupo10.levelupgamer.ui.components.HomeHeader
+import androidx.compose.runtime.livedata.observeAsState
+import kotlinx.coroutines.launch
+import com.grupo10.levelupgamer.model.ProductsData
 import com.grupo10.levelupgamer.ui.components.BottomNavigationBar
+import com.grupo10.levelupgamer.ui.components.HomeHeader
 import com.grupo10.levelupgamer.ui.components.ProductCard
 import com.grupo10.levelupgamer.ui.components.ProductGridCard
-import com.grupo10.levelupgamer.model.ProductsData
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +39,10 @@ fun HomeScreen(
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
     var selectedProduct by remember { mutableStateOf<com.grupo10.levelupgamer.model.Product?>(null) }
+
+    // Estado para controlar el drawer
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
     // Simular contador de notificaciones
     val notificationCount = remember { mutableStateOf(3) }
@@ -63,38 +68,55 @@ fun HomeScreen(
     }
 
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            HomeHeader(
-                modifier = Modifier,
-                searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it },
-                onNotificationClick = {
-                    showNotificationDialog = true
-                    onNotificationClick()
-                },
-                notificationCount = notificationCount.value,
-                onLogoutClick = onLogout
-            )
-        },
-        bottomBar = {
-            BottomNavigationBar(
-                modifier = Modifier,
-                selectedTab = selectedTab,
-                onTabSelected = { tab ->
-                    when (tab) {
-                        0 -> selectedTab = 0 // Inicio - ya estamos en home
-                        1 -> onNavigateToQRScanner() // QR Scanner tab
-                        2 -> onNavigateToCart() // Carrito tab
-                        3 -> selectedTab = 3 // Menú
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            com.grupo10.levelupgamer.ui.components.NavigationDrawerContent(
+                onDismiss = {
+                    scope.launch {
+                        drawerState.close()
                     }
-                },
-                cartItemCount = cartItemCount
+                }
             )
         }
-    ) { paddingValues ->
+    ) {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            topBar = {
+                HomeHeader(
+                    modifier = Modifier,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { searchQuery = it },
+                    onNotificationClick = {
+                        showNotificationDialog = true
+                        onNotificationClick()
+                    },
+                    notificationCount = notificationCount.value,
+                    onLogoutClick = onLogout
+                )
+            },
+            bottomBar = {
+                BottomNavigationBar(
+                    modifier = Modifier,
+                    selectedTab = selectedTab,
+                    onTabSelected = { tab ->
+                        when (tab) {
+                            0 -> selectedTab = 0 // Inicio - ya estamos en home
+                            1 -> onNavigateToQRScanner() // QR Scanner tab
+                            2 -> onNavigateToCart() // Carrito tab
+                            3 -> {
+                                selectedTab = 3 // Menú
+                                scope.launch {
+                                    drawerState.open()
+                                }
+                            }
+                        }
+                    },
+                    cartItemCount = cartItemCount
+                )
+            }
+        ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -198,8 +220,8 @@ fun HomeScreen(
         }
     }
 
-    // Diálogo de detalles del producto
-    selectedProduct?.let { product ->
+        // Diálogo de detalles del producto
+        selectedProduct?.let { product ->
         AlertDialog(
             onDismissRequest = { selectedProduct = null },
             title = {
@@ -368,6 +390,7 @@ fun HomeScreen(
             }
         )
     }
+    } // Cierre del ModalNavigationDrawer
 }
 
 @Composable
