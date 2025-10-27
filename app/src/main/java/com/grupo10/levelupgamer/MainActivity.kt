@@ -55,16 +55,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
-                        composable(
-                            route = "home?productId={productId}",
-                            arguments = listOf(
-                                navArgument("productId") {
-                                    type = NavType.IntType
-                                    defaultValue = -1
-                                }
-                            )
-                        ) { backStackEntry ->
-                            val productId = backStackEntry.arguments?.getInt("productId") ?: -1
+                        composable("home") {
                             HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 cartViewModel = cartViewModel,
@@ -73,10 +64,24 @@ class MainActivity : FragmentActivity() {
                                         popUpTo("home") { inclusive = true }
                                     }
                                 },
+                                onNavigateToCart = {
+                                    navController.navigate("cart")
+                                },
                                 onNavigateToQRScanner = {
                                     navController.navigate("qr_scanner")
+                                }
+                            )
+                        }
+
+                        composable("cart") {
+                            CartScreen(
+                                cartViewModel = cartViewModel,
+                                onBackPressed = {
+                                    navController.popBackStack()
                                 },
-                                scannedProductId = if (productId > 0) productId else null
+                                onCheckoutClick = {
+                                    // TODO: Implementar navegación a checkout
+                                }
                             )
                         }
 
@@ -88,9 +93,8 @@ class MainActivity : FragmentActivity() {
                                     navController.popBackStack()
                                 },
                                 onProductFound = { productId ->
-                                    navController.navigate("home?productId=$productId") {
-                                        popUpTo("home") { inclusive = true }
-                                    }
+                                    // Simplemente regresar al home sin pasar el productId
+                                    navController.popBackStack()
                                 }
                             )
                         }

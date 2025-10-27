@@ -174,7 +174,7 @@ fun ProductGridCard(
     Card(
         modifier = modifier
             .width(160.dp)
-            .height(240.dp)
+            .height(if (product.hasDiscount) 270.dp else 250.dp)
             .clickable { onProductClick(product) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -189,13 +189,13 @@ fun ProductGridCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(100.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "🎮",
-                    fontSize = 48.sp
+                    fontSize = 40.sp
                 )
 
                 // Badge de descuento
@@ -221,24 +221,27 @@ fun ProductGridCard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(8.dp),
+                    .padding(10.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
                         text = product.name,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 16.sp
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = product.category.name,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -247,39 +250,39 @@ fun ProductGridCard(
                     if (product.hasDiscount) {
                         Text(
                             text = formatPrice(product.price),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                             textDecoration = TextDecoration.LineThrough
                         )
                         Text(
                             text = formatPrice(product.finalPrice),
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Red
                         )
                     } else {
                         Text(
                             text = formatPrice(product.price),
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = { onAddToCart(product) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(36.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
-                        contentPadding = PaddingValues(vertical = 6.dp)
+                        contentPadding = PaddingValues(vertical = 0.dp)
                     ) {
                         Text(
-                            text = "+",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            text = "Agregar",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
