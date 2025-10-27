@@ -1,13 +1,19 @@
 package com.grupo10.levelupgamer.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,13 +30,14 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     onNotificationClick: () -> Unit = {},
     onLogout: () -> Unit = {},
+    onNavigateToCart: () -> Unit = {},
     onNavigateToQRScanner: () -> Unit = {},
-    scannedProductId: Int? = null
+    cartViewModel: CartViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
-    var showProductDialog by remember { mutableStateOf<com.grupo10.levelupgamer.model.Product?>(null) }
+    var selectedProduct by remember { mutableStateOf<com.grupo10.levelupgamer.model.Product?>(null) }
 
     // Simular contador de notificaciones
     val notificationCount = remember { mutableStateOf(3) }
@@ -55,23 +62,6 @@ fun HomeScreen(
         }
     }
 
-    // Manejar cambio de tab (navegar al carrito cuando se selecciona)
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == 1) {
-            onNavigateToCart()
-            selectedTab = 0 // Reset para poder volver a seleccionar
-        }
-    }
-
-    // Mostrar producto escaneado si existe
-    LaunchedEffect(scannedProductId) {
-        if (scannedProductId != null) {
-            val product = ProductsData.sampleProducts.find { it.id == scannedProductId }
-            if (product != null) {
-                showProductDialog = product
-            }
-        }
-    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -94,12 +84,14 @@ fun HomeScreen(
                 modifier = Modifier,
                 selectedTab = selectedTab,
                 onTabSelected = { tab ->
-                    selectedTab = tab
-                    if (tab == 1) { // QR Scanner tab
-                        onNavigateToQRScanner()
+                    when (tab) {
+                        0 -> selectedTab = 0 // Inicio - ya estamos en home
+                        1 -> onNavigateToQRScanner() // QR Scanner tab
+                        2 -> onNavigateToCart() // Carrito tab
+                        3 -> selectedTab = 3 // Menú
                     }
                 },
-                cartItemCount = cartItemCount.value
+                cartItemCount = cartItemCount
             )
         }
     ) { paddingValues ->
@@ -148,7 +140,7 @@ fun HomeScreen(
                         ProductGridCard(
                             product = productsOnSale[index],
                             onProductClick = { product ->
-                                // TODO: Navegar a detalle del producto
+                                selectedProduct = product
                             },
                             onAddToCart = { product ->
                                 cartViewModel.addToCart(product)
@@ -175,7 +167,7 @@ fun HomeScreen(
                 ProductCard(
                     product = ProductsData.sampleProducts[index],
                     onProductClick = { product ->
-                        // TODO: Navegar a detalle del producto
+                        selectedProduct = product
                     },
                     onAddToCart = { product ->
                         cartViewModel.addToCart(product)
@@ -204,6 +196,138 @@ fun HomeScreen(
                 }
             }
         }
+    }
+
+    // Diálogo de detalles del producto
+    selectedProduct?.let { product ->
+        AlertDialog(
+            onDismissRequest = { selectedProduct = null },
+            title = {
+                Text(
+                    text = product.name,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Icono del producto
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "🎮", fontSize = 48.sp)
+                    }
+
+                    // Categoría
+                    Text(
+                        text = product.category.name,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    // Descripción
+                    Text(
+                        text = product.description,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+
+                    Divider()
+
+                    // Precio
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            if (product.hasDiscount) {
+                                Text(
+                                    text = "$${String.format("%,.0f", product.price)}",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    textDecoration = TextDecoration.LineThrough
+                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "$${String.format("%,.0f", product.finalPrice)}",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Red
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color.Red)
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = "-${product.discount}%",
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = "$${String.format("%,.0f", product.price)}",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+
+                    // Stock
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "Stock:",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = if (product.stock > 0) "${product.stock} disponibles" else "Sin stock",
+                            fontSize = 14.sp,
+                            color = if (product.stock > 0) MaterialTheme.colorScheme.tertiary else Color.Red
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        cartViewModel.addToCart(product)
+                        selectedProduct = null
+                    },
+                    enabled = product.stock > 0
+                ) {
+                    Text("Agregar al carrito")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedProduct = null }) {
+                    Text("Cerrar")
+                }
+            }
+        )
     }
 
     // Diálogo de notificaciones
@@ -239,41 +363,6 @@ fun HomeScreen(
                     showNotificationDialog = false
                     notificationCount.value = 0
                 }) {
-                    Text("Cerrar")
-                }
-            }
-        )
-    }
-
-    // Diálogo de producto escaneado
-    showProductDialog?.let { product ->
-        AlertDialog(
-            onDismissRequest = { showProductDialog = null },
-            title = {
-                Text(text = "Producto escaneado")
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ProductCard(
-                        product = product,
-                        onProductClick = { },
-                        onAddToCart = {
-                            cartItemCount.value += 1
-                            showProductDialog = null
-                        }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    cartItemCount.value += 1
-                    showProductDialog = null
-                }) {
-                    Text("Agregar al carrito")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showProductDialog = null }) {
                     Text("Cerrar")
                 }
             }

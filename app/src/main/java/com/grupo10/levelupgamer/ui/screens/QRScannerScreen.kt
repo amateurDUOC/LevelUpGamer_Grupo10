@@ -30,7 +30,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import com.grupo10.levelupgamer.ui.components.ProductCard
 import com.grupo10.levelupgamer.viewmodel.QRScannerViewModel
 import java.util.concurrent.Executors
 
@@ -348,12 +347,55 @@ fun ProductFoundView(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Tarjeta del producto
-        ProductCard(
-            product = product,
-            onProductClick = { onViewProduct() },
-            onAddToCart = { }
-        )
+        // Información del producto
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = product.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Text(
+                    text = product.description,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+
+                Text(
+                    text = "Precio: $${String.format("%,.0f", product.price)}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                if (product.stock > 0) {
+                    Text(
+                        text = "Stock: ${product.stock} disponibles",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                } else {
+                    Text(
+                        text = "Sin stock",
+                        fontSize = 12.sp,
+                        color = Color.Red
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 
