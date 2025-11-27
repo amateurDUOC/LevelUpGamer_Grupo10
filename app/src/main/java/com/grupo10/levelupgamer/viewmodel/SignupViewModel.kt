@@ -1,20 +1,40 @@
 package com.grupo10.levelupgamer.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.grupo10.levelupgamer.data.remote.RetrofitClient
+import com.grupo10.levelupgamer.data.remote.dto.RegisterRequest
+import com.grupo10.levelupgamer.data.remote.service.AddressSuggestion
+import com.grupo10.levelupgamer.data.remote.service.GeocodingService
 import com.grupo10.levelupgamer.model.SignupErrors
 import com.grupo10.levelupgamer.model.SignupUIState
 import com.grupo10.levelupgamer.model.User
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class SignupViewModel : ViewModel() {
     private val _state = MutableStateFlow(SignupUIState())
-
-    val state : StateFlow<SignupUIState> = _state
+    val state: StateFlow<SignupUIState> = _state
 
     private val _registeredUser = MutableStateFlow<User?>(null)
     val registeredUser: StateFlow<User?> = _registeredUser
+
+    private val geocodingService = GeocodingService()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    // Estados para sugerencias de dirección
+    private val _addressSuggestions = MutableStateFlow<List<AddressSuggestion>>(emptyList())
+    val addressSuggestions: StateFlow<List<AddressSuggestion>> = _addressSuggestions
+
+    private val _isLoadingSuggestions = MutableStateFlow(false)
+    val isLoadingSuggestions: StateFlow<Boolean> = _isLoadingSuggestions
+
+    private var searchJob: Job? = null
 
     fun onNameChange(value : String) {
         _state.update { it.copy(name = value, errors = it.errors.copy(name = null)) }
@@ -40,8 +60,44 @@ class SignupViewModel : ViewModel() {
         _state.update { it.copy(confirmPassword = value, errors = it.errors.copy(confirmPassword = null)) }
     }
 
-    fun onAddressChange(value : String) {
+    fun onAddressChange(value: String) {
         _state.update { it.copy(address = value, errors = it.errors.copy(address = null)) }
+
+        // Buscar sugerencias con debounce (esperar 500ms después de que el usuario deje de escribir)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(500) // Debounce de 500ms
+            if (value.length >= 3) {
+                searchAddressSuggestions(value)
+            } else {
+                _addressSuggestions.value = emptyList()
+            }
+        }
+    }
+
+    private fun searchAddressSuggestions(query: String) {
+        viewModelScope.launch {
+            _isLoadingSuggestions.value = true
+
+            val result = geocodingService.getAddressSuggestions(query)
+
+            if (result.isSuccess) {
+                _addressSuggestions.value = result.getOrNull() ?: emptyList()
+            } else {
+                _addressSuggestions.value = emptyList()
+            }
+
+            _isLoadingSuggestions.value = false
+        }
+    }
+
+    fun selectAddressSuggestion(suggestion: AddressSuggestion) {
+        _state.update { it.copy(address = suggestion.displayName) }
+        _addressSuggestions.value = emptyList() // Limpiar sugerencias
+    }
+
+    fun clearAddressSuggestions() {
+        _addressSuggestions.value = emptyList()
     }
 
     private fun isValidEmailDomain(email: String): Boolean {
@@ -77,30 +133,84 @@ class SignupViewModel : ViewModel() {
             errors.password,
             errors.confirmPassword,
             errors.address
-        ).isNotEmpty()
+        )
 
-        _state.update { it.copy(errors = errors) }
+        val hasErrors = foundErrors.isNotEmpty()
 
-        return !foundErrors
+        if (hasErrors) {
+            _state.update { it.copy(errors = errors) }
+        }
+
+        return !hasErrors
     }
 
     fun signup() {
-        if (validateSignupForm()) {
-            // TODO: Implementar lógica de registro (e.g., llamada a API)
-            val currentState = _state.value
+        if (!validateSignupForm()) return
 
-            // Por defecto, asignar dirección en Viña del Mar
-            val newUser = User(
-                id = 2, // TODO: Generar ID real
-                email = currentState.email,
-                name = "${currentState.name} ${currentState.lastName}",
-                address = currentState.address,
-                latitude = -33.0243, // Coordenadas por defecto en Viña del Mar
-                longitude = -71.5518
-            )
+        _isLoading.value = true
 
-            _registeredUser.value = newUser
-            _state.update { it.copy(signupSuccess = true, userId = newUser.id) }
+        viewModelScope.launch {
+            try {
+                val currentState = _state.value
+
+                // 1. Geocodificar la dirección usando OpenStreetMap
+                val locationResult = geocodingService.getCoordinatesFromAddress(currentState.address)
+
+                if (locationResult.isFailure) {
+                    _state.update {
+                        it.copy(
+                            signupError = "No se pudo verificar la dirección. Por favor, verifica que sea correcta."
+                        )
+                    }
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                val location = locationResult.getOrNull()!!
+
+                // 2. Registrar usuario en el backend
+                val registerRequest = RegisterRequest(
+                    name = "${currentState.name} ${currentState.lastName}",
+                    email = currentState.email,
+                    password = currentState.password,
+                    address = currentState.address,
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                )
+
+                val response = RetrofitClient.authApi.register(registerRequest)
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    val authData = response.body()!!.data!!
+
+                    // Guardar token
+                    RetrofitClient.setAuthToken(authData.token)
+
+                    // Crear usuario
+                    val newUser = User(
+                        id = authData.user.id.toIntOrNull() ?: 1,
+                        email = authData.user.email,
+                        name = authData.user.name,
+                        address = authData.user.address,
+                        latitude = authData.user.latitude,
+                        longitude = authData.user.longitude
+                    )
+
+                    _registeredUser.value = newUser
+                    _state.update { it.copy(signupSuccess = true, userId = newUser.id) }
+                } else {
+                    val errorMessage = response.body()?.message
+                        ?: response.body()?.errors?.firstOrNull()?.msg
+                        ?: "Error al registrar usuario"
+                    _state.update { it.copy(signupError = errorMessage) }
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(signupError = "Error de conexión: ${e.message}")
+                }
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

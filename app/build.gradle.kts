@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +22,16 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Leer URLs del local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            FileInputStream(localPropertiesFile).use { localProperties.load(it) }
+        }
+
+        buildConfigField("String", "BASE_URL", "\"${localProperties.getProperty("BASE_URL") ?: "http://10.0.2.2:3000/api/"}\"")
+        buildConfigField("String", "NOMINATIM_URL", "\"${localProperties.getProperty("NOMINATIM_URL") ?: "https://nominatim.openstreetmap.org/"}\"")
     }
 
     buildTypes {
@@ -42,6 +55,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -81,6 +95,15 @@ dependencies {
 
     // OpenStreetMap (osmdroid) - Alternativa gratuita a Google Maps
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    // Retrofit para API REST
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // Gson para JSON
+    implementation("com.google.code.gson:gson:2.10.1")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

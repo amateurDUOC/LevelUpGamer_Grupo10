@@ -2,12 +2,15 @@ package com.grupo10.levelupgamer.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.grupo10.levelupgamer.R
 import com.grupo10.levelupgamer.viewmodel.SignupViewModel
 
@@ -52,6 +59,9 @@ fun SignupScreen(
     onNavigateToLogin: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val addressSuggestions by viewModel.addressSuggestions.collectAsState()
+    val isLoadingSuggestions by viewModel.isLoadingSuggestions.collectAsState()
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -224,30 +234,87 @@ fun SignupScreen(
                         .padding(horizontal = 35.dp)
                 )
 
-                OutlinedTextField(
-                    value = state.address,
-                    onValueChange = viewModel::onAddressChange,
-                    label = { Text("Dirección") },
-                    isError = state.errors.address != null,
-                    supportingText = {
-                        state.errors.address?.let {
-                            Text(it, color = MaterialTheme.colorScheme.error)
-                        }
-                    },
+                // Campo de dirección con autocompletado
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 35.dp)
-                        .padding(bottom = 20.dp)
-                )
+                ) {
+                    OutlinedTextField(
+                        value = state.address,
+                        onValueChange = viewModel::onAddressChange,
+                        label = { Text("Dirección") },
+                        placeholder = { Text("Ej: Alvarez 1130, Viña del Mar") },
+                        isError = state.errors.address != null,
+                        supportingText = {
+                            state.errors.address?.let {
+                                Text(it, color = MaterialTheme.colorScheme.error)
+                            } ?: if (state.address.length < 3) {
+                                Text("Escribe al menos 3 caracteres para ver sugerencias", fontSize = 12.sp)
+                            } else null
+                        },
+                        trailingIcon = {
+                            if (isLoadingSuggestions) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Lista de sugerencias
+                    if (addressSuggestions.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                addressSuggestions.forEach { suggestion ->
+                                    Text(
+                                        text = suggestion.displayName,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                viewModel.selectAddressSuggestion(suggestion)
+                                            }
+                                            .padding(12.dp),
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (suggestion != addressSuggestions.last()) {
+                                        Divider()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Button(
                     onClick = viewModel::signup,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 125.dp)
                         .padding(bottom = 35.dp)
                 ) {
-                    Text("Registrarse")
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Registrarse")
+                    }
                 }
             }
         }

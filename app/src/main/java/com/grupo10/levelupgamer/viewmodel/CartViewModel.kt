@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 class CartViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: CartRepository
-    private val _currentUserId = MutableLiveData<Int>()
+    private val _currentUserId = MutableLiveData<Int?>()
     private val _addToCartResult = MutableLiveData<String>()
     val addToCartResult: LiveData<String> = _addToCartResult
 
@@ -104,6 +104,15 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
             clearCart()
             hideCheckoutDialog()
         }
+    }
+
+    fun clearCartOnLogout() {
+        viewModelScope.launch {
+            _currentUserId.value?.let { userId ->
+                repository.clearCart(userId)
+            }
+        }
+        _currentUserId.value = null
     }
 }
 

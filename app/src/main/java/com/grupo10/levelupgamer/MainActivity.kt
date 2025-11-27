@@ -55,6 +55,9 @@ class MainActivity : FragmentActivity() {
                                 viewModel = loginViewModel,
                                 onLoginSuccess = {
                                     loginUser?.let { user ->
+                                        // Limpiar carrito del usuario anterior
+                                        cartViewModel.clearCartOnLogout()
+                                        // Establecer nuevo usuario
                                         navigationViewModel.setCurrentUser(user)
                                         cartViewModel.setCurrentUser(user.id)
                                     }
@@ -77,6 +80,9 @@ class MainActivity : FragmentActivity() {
                                 viewModel = signupViewModel,
                                 onSignupSuccess = {
                                     signupUser?.let { user ->
+                                        // Limpiar carrito del usuario anterior
+                                        cartViewModel.clearCartOnLogout()
+                                        // Establecer nuevo usuario
                                         navigationViewModel.setCurrentUser(user)
                                         cartViewModel.setCurrentUser(user.id)
                                     }
@@ -98,6 +104,7 @@ class MainActivity : FragmentActivity() {
                                 cartViewModel = cartViewModel,
                                 currentUser = currentUser,
                                 onLogout = {
+                                    cartViewModel.clearCartOnLogout()
                                     navigationViewModel.logout()
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
