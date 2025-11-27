@@ -37,7 +37,7 @@ fun CartScreen(
 ) {
     val cartItems by cartViewModel.getCartItems()?.observeAsState(emptyList()) ?: remember { mutableStateOf(emptyList()) }
     val cartTotal by cartViewModel.getCartTotal()?.observeAsState(0.0) ?: remember { mutableStateOf(0.0) }
-    var showCheckoutDialog by remember { mutableStateOf(false) }
+    val showCheckoutDialog by cartViewModel.showCheckoutDialog.collectAsState()
 
     Scaffold(
         topBar = {
@@ -142,7 +142,7 @@ fun CartScreen(
                 CartSummarySection(
                     subtotal = cartTotal ?: 0.0,
                     onCheckoutClick = {
-                        showCheckoutDialog = true
+                        cartViewModel.showCheckoutDialog()
                     }
                 )
             }
@@ -152,7 +152,7 @@ fun CartScreen(
     // Diálogo de confirmación de compra
     if (showCheckoutDialog) {
         AlertDialog(
-            onDismissRequest = { showCheckoutDialog = false },
+            onDismissRequest = { cartViewModel.hideCheckoutDialog() },
             icon = {
                 Icon(
                     imageVector = Icons.Default.ShoppingCart,
@@ -184,10 +184,8 @@ fun CartScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        showCheckoutDialog = false
-                        cartViewModel.clearCart()
+                        cartViewModel.processCheckout()
                         onCheckoutClick()
-                        // TODO: Implementar lógica de compra
                     }
                 ) {
                     Text("Confirmar")
@@ -195,7 +193,7 @@ fun CartScreen(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showCheckoutDialog = false }
+                    onClick = { cartViewModel.hideCheckoutDialog() }
                 ) {
                     Text("Cancelar")
                 }

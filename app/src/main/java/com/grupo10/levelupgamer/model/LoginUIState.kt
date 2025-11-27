@@ -6,6 +6,7 @@ data class LoginUIState(
     val errors : LoginErrors = LoginErrors(),
     val loginSuccess: Boolean = false,
     val loginError: String? = null,
-    val showBiometricPrompt: Boolean = false
+    val showBiometricPrompt: Boolean = false,
+    val userId: Int? = null
 )
 

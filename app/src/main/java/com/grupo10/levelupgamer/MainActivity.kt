@@ -22,6 +22,7 @@ import com.grupo10.levelupgamer.ui.screens.SignupScreen
 import com.grupo10.levelupgamer.ui.theme.LevelUpGamerTheme
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
 import com.grupo10.levelupgamer.viewmodel.LoginViewModel
+import com.grupo10.levelupgamer.viewmodel.NavigationViewModel
 import com.grupo10.levelupgamer.viewmodel.QRScannerViewModel
 import com.grupo10.levelupgamer.viewmodel.SignupViewModel
 
@@ -34,6 +35,7 @@ class MainActivity : FragmentActivity() {
                 var showSplash by remember { mutableStateOf(true) }
                 val navController = rememberNavController()
                 val cartViewModel: CartViewModel = viewModel()
+                val navigationViewModel: NavigationViewModel = viewModel()
 
                 if (showSplash) {
                     AnimatedSplashScreen(
@@ -45,11 +47,14 @@ class MainActivity : FragmentActivity() {
                     NavHost(navController = navController, startDestination = "login") {
                         composable("login") {
                             val loginViewModel: LoginViewModel = viewModel()
+                            val loginState by loginViewModel.state.collectAsState()
+
                             LoginScreen(
                                 viewModel = loginViewModel,
                                 onLoginSuccess = {
-                                    // Configurar usuario en CartViewModel (usar ID 1 por defecto)
-                                    cartViewModel.setCurrentUser(1)
+                                    val userId = loginState.userId ?: 1
+                                    navigationViewModel.setCurrentUser(userId)
+                                    cartViewModel.setCurrentUser(userId)
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -62,11 +67,14 @@ class MainActivity : FragmentActivity() {
 
                         composable("signup") {
                             val signupViewModel: SignupViewModel = viewModel()
+                            val signupState by signupViewModel.state.collectAsState()
+
                             SignupScreen(
                                 viewModel = signupViewModel,
                                 onSignupSuccess = {
-                                    // Configurar usuario en CartViewModel (usar ID 1 por defecto)
-                                    cartViewModel.setCurrentUser(1)
+                                    val userId = signupState.userId ?: 1
+                                    navigationViewModel.setCurrentUser(userId)
+                                    cartViewModel.setCurrentUser(userId)
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -82,6 +90,7 @@ class MainActivity : FragmentActivity() {
                                 modifier = Modifier.fillMaxSize(),
                                 cartViewModel = cartViewModel,
                                 onLogout = {
+                                    navigationViewModel.logout()
                                     navController.navigate("login") {
                                         popUpTo("home") { inclusive = true }
                                     }

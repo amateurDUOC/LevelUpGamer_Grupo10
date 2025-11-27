@@ -9,6 +9,9 @@ import com.grupo10.levelupgamer.data.database.LevelUpDatabase
 import com.grupo10.levelupgamer.data.repository.CartRepository
 import com.grupo10.levelupgamer.model.CartItem
 import com.grupo10.levelupgamer.model.Product
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CartViewModel(application: Application) : AndroidViewModel(application) {
@@ -17,6 +20,9 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentUserId = MutableLiveData<Int>()
     private val _addToCartResult = MutableLiveData<String>()
     val addToCartResult: LiveData<String> = _addToCartResult
+
+    private val _showCheckoutDialog = MutableStateFlow(false)
+    val showCheckoutDialog: StateFlow<Boolean> = _showCheckoutDialog.asStateFlow()
 
     init {
         val cartDao = LevelUpDatabase.getDatabase(application).cartDao()
@@ -81,6 +87,22 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
             viewModelScope.launch {
                 repository.clearCart(userId)
             }
+        }
+    }
+
+    fun showCheckoutDialog() {
+        _showCheckoutDialog.value = true
+    }
+
+    fun hideCheckoutDialog() {
+        _showCheckoutDialog.value = false
+    }
+
+    fun processCheckout() {
+        viewModelScope.launch {
+            // TODO: Implementar lógica de compra (procesar pago, crear orden, etc.)
+            clearCart()
+            hideCheckoutDialog()
         }
     }
 }

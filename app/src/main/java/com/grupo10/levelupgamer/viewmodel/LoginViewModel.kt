@@ -33,7 +33,7 @@ class LoginViewModel : ViewModel() {
 
         val currentState = _state.value
         if (currentState.email == VALID_EMAIL && currentState.password == VALID_PASSWORD) {
-            _state.update { it.copy(loginSuccess = true) }
+            _state.update { it.copy(loginSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
         } else {
             _state.update { it.copy(loginError = "Correo o contraseña incorrectos") }
         }
@@ -51,7 +51,7 @@ class LoginViewModel : ViewModel() {
 
     // La vista llama a este método si la autenticación biométrica es exitosa
     fun onBiometricAuthSuccess() {
-        _state.update { it.copy(loginSuccess = true) }
+        _state.update { it.copy(loginSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
     }
 
     // La vista llama a este método si la autenticación biométrica falla o hay un error

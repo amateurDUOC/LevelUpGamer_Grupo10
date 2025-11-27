@@ -83,7 +83,7 @@ class SignupViewModel : ViewModel() {
     fun signup() {
         if (validateSignupForm()) {
             // TODO: Implementar lógica de registro (e.g., llamada a API)
-            _state.update { it.copy(signupSuccess = true) }
+            _state.update { it.copy(signupSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
         }
     }
 }

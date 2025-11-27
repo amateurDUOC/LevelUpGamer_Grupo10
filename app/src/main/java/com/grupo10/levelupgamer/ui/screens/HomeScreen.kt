@@ -18,12 +18,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 import kotlinx.coroutines.launch
-import com.grupo10.levelupgamer.model.ProductsData
 import com.grupo10.levelupgamer.ui.components.BottomNavigationBar
 import com.grupo10.levelupgamer.ui.components.HomeHeader
 import com.grupo10.levelupgamer.ui.components.ProductCard
 import com.grupo10.levelupgamer.ui.components.ProductGridCard
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
+import com.grupo10.levelupgamer.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,19 +33,17 @@ fun HomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onNavigateToQRScanner: () -> Unit = {},
-    cartViewModel: CartViewModel = viewModel()
+    cartViewModel: CartViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    val homeState by homeViewModel.uiState.collectAsState()
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
-    var selectedProduct by remember { mutableStateOf<com.grupo10.levelupgamer.model.Product?>(null) }
 
     // Estado para controlar el drawer
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Simular contador de notificaciones
-    val notificationCount = remember { mutableStateOf(3) }
 
     // Observar contador de items en carrito desde el ViewModel
     val cartItems by cartViewModel.getCartItems()?.observeAsState(emptyList()) ?: remember { mutableStateOf(emptyList()) }
@@ -86,13 +84,13 @@ fun HomeScreen(
             topBar = {
                 HomeHeader(
                     modifier = Modifier,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it },
+                    searchQuery = homeState.searchQuery,
+                    onSearchQueryChange = { homeViewModel.onSearchQueryChange(it) },
                     onNotificationClick = {
                         showNotificationDialog = true
                         onNotificationClick()
                     },
-                    notificationCount = notificationCount.value,
+                    notificationCount = homeState.notificationCount,
                     onLogoutClick = onLogout
                 )
             },
@@ -157,12 +155,11 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
-                    val productsOnSale = ProductsData.sampleProducts.filter { it.hasDiscount }
-                    items(productsOnSale.size) { index ->
+                    items(homeState.productsOnSale.size) { index ->
                         ProductGridCard(
-                            product = productsOnSale[index],
+                            product = homeState.productsOnSale[index],
                             onProductClick = { product ->
-                                selectedProduct = product
+                                homeViewModel.selectProduct(product)
                             },
                             onAddToCart = { product ->
                                 cartViewModel.addToCart(product)
@@ -185,11 +182,11 @@ fun HomeScreen(
             }
 
             // Lista vertical de todos los productos
-            items(ProductsData.sampleProducts.size) { index ->
+            items(homeState.filteredProducts.size) { index ->
                 ProductCard(
-                    product = ProductsData.sampleProducts[index],
+                    product = homeState.filteredProducts[index],
                     onProductClick = { product ->
-                        selectedProduct = product
+                        homeViewModel.selectProduct(product)
                     },
                     onAddToCart = { product ->
                         cartViewModel.addToCart(product)
@@ -198,11 +195,11 @@ fun HomeScreen(
             }
 
             // Mostrar resultados de búsqueda si hay texto
-            if (searchQuery.isNotEmpty()) {
+            if (homeState.searchQuery.isNotEmpty()) {
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Resultados para: \"$searchQuery\"",
+                        text = "Resultados para: \"${homeState.searchQuery}\"",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -221,9 +218,9 @@ fun HomeScreen(
     }
 
         // Diálogo de detalles del producto
-        selectedProduct?.let { product ->
+        homeState.selectedProduct?.let { product ->
         AlertDialog(
-            onDismissRequest = { selectedProduct = null },
+            onDismissRequest = { homeViewModel.selectProduct(null) },
             title = {
                 Text(
                     text = product.name,
@@ -337,7 +334,7 @@ fun HomeScreen(
                 Button(
                     onClick = {
                         cartViewModel.addToCart(product)
-                        selectedProduct = null
+                        homeViewModel.selectProduct(null)
                     },
                     enabled = product.stock > 0
                 ) {
@@ -345,7 +342,7 @@ fun HomeScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { selectedProduct = null }) {
+                TextButton(onClick = { homeViewModel.selectProduct(null) }) {
                     Text("Cerrar")
                 }
             }
@@ -357,7 +354,7 @@ fun HomeScreen(
         AlertDialog(
             onDismissRequest = {
                 showNotificationDialog = false
-                notificationCount.value = 0
+                homeViewModel.clearNotifications()
             },
             title = {
                 Text(text = "Notificaciones")
@@ -383,7 +380,7 @@ fun HomeScreen(
             confirmButton = {
                 TextButton(onClick = {
                     showNotificationDialog = false
-                    notificationCount.value = 0
+                    homeViewModel.clearNotifications()
                 }) {
                     Text("Cerrar")
                 }

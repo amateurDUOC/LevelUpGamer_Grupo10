@@ -10,5 +10,6 @@ data class SignupUIState(
     val address: String = "",
     val errors : SignupErrors = SignupErrors(),
     val signupSuccess: Boolean = false,
-    val signupError: String? = null
+    val signupError: String? = null,
+    val userId: Int? = null
 )
