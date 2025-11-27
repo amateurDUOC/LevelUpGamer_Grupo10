@@ -3,6 +3,7 @@ package com.grupo10.levelupgamer.viewmodel
 import androidx.lifecycle.ViewModel
 import com.grupo10.levelupgamer.model.LoginErrors
 import com.grupo10.levelupgamer.model.LoginUIState
+import com.grupo10.levelupgamer.model.User
 import com.grupo10.levelupgamer.util.EmailValidator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,9 +14,22 @@ class LoginViewModel : ViewModel() {
 
     val state : StateFlow<LoginUIState> = _state
 
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser
+
     private companion object {
         private const val VALID_EMAIL = "admin@duoc.cl"
         private const val VALID_PASSWORD = "123456"
+
+        // Usuario predefinido con dirección en Viña del Mar
+        private val ADMIN_USER = User(
+            id = 1,
+            email = "admin@duoc.cl",
+            name = "Administrador",
+            address = "Alvarez 1130, Viña del Mar",
+            latitude = -33.0243,
+            longitude = -71.5518
+        )
     }
 
     fun onEmailChange(value : String) {
@@ -33,7 +47,8 @@ class LoginViewModel : ViewModel() {
 
         val currentState = _state.value
         if (currentState.email == VALID_EMAIL && currentState.password == VALID_PASSWORD) {
-            _state.update { it.copy(loginSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
+            _currentUser.value = ADMIN_USER
+            _state.update { it.copy(loginSuccess = true, userId = ADMIN_USER.id) }
         } else {
             _state.update { it.copy(loginError = "Correo o contraseña incorrectos") }
         }
@@ -51,7 +66,8 @@ class LoginViewModel : ViewModel() {
 
     // La vista llama a este método si la autenticación biométrica es exitosa
     fun onBiometricAuthSuccess() {
-        _state.update { it.copy(loginSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
+        _currentUser.value = ADMIN_USER
+        _state.update { it.copy(loginSuccess = true, userId = ADMIN_USER.id) }
     }
 
     // La vista llama a este método si la autenticación biométrica falla o hay un error

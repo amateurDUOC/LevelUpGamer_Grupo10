@@ -3,6 +3,7 @@ package com.grupo10.levelupgamer.viewmodel
 import androidx.lifecycle.ViewModel
 import com.grupo10.levelupgamer.model.SignupErrors
 import com.grupo10.levelupgamer.model.SignupUIState
+import com.grupo10.levelupgamer.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -11,6 +12,9 @@ class SignupViewModel : ViewModel() {
     private val _state = MutableStateFlow(SignupUIState())
 
     val state : StateFlow<SignupUIState> = _state
+
+    private val _registeredUser = MutableStateFlow<User?>(null)
+    val registeredUser: StateFlow<User?> = _registeredUser
 
     fun onNameChange(value : String) {
         _state.update { it.copy(name = value, errors = it.errors.copy(name = null)) }
@@ -83,7 +87,20 @@ class SignupViewModel : ViewModel() {
     fun signup() {
         if (validateSignupForm()) {
             // TODO: Implementar lógica de registro (e.g., llamada a API)
-            _state.update { it.copy(signupSuccess = true, userId = 1) } // TODO: Obtener ID real del usuario
+            val currentState = _state.value
+
+            // Por defecto, asignar dirección en Viña del Mar
+            val newUser = User(
+                id = 2, // TODO: Generar ID real
+                email = currentState.email,
+                name = "${currentState.name} ${currentState.lastName}",
+                address = currentState.address,
+                latitude = -33.0243, // Coordenadas por defecto en Viña del Mar
+                longitude = -71.5518
+            )
+
+            _registeredUser.value = newUser
+            _state.update { it.copy(signupSuccess = true, userId = newUser.id) }
         }
     }
 }

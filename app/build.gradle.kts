@@ -79,6 +79,9 @@ dependencies {
     // ML Kit para detección de códigos de barras/QR
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
+    // OpenStreetMap (osmdroid) - Alternativa gratuita a Google Maps
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)

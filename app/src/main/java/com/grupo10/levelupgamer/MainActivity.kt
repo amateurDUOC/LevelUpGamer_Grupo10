@@ -19,6 +19,7 @@ import com.grupo10.levelupgamer.ui.screens.HomeScreen
 import com.grupo10.levelupgamer.ui.screens.LoginScreen
 import com.grupo10.levelupgamer.ui.screens.QRScannerScreen
 import com.grupo10.levelupgamer.ui.screens.SignupScreen
+import com.grupo10.levelupgamer.ui.screens.StoresScreen
 import com.grupo10.levelupgamer.ui.theme.LevelUpGamerTheme
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
 import com.grupo10.levelupgamer.viewmodel.LoginViewModel
@@ -48,13 +49,15 @@ class MainActivity : FragmentActivity() {
                         composable("login") {
                             val loginViewModel: LoginViewModel = viewModel()
                             val loginState by loginViewModel.state.collectAsState()
+                            val loginUser by loginViewModel.currentUser.collectAsState()
 
                             LoginScreen(
                                 viewModel = loginViewModel,
                                 onLoginSuccess = {
-                                    val userId = loginState.userId ?: 1
-                                    navigationViewModel.setCurrentUser(userId)
-                                    cartViewModel.setCurrentUser(userId)
+                                    loginUser?.let { user ->
+                                        navigationViewModel.setCurrentUser(user)
+                                        cartViewModel.setCurrentUser(user.id)
+                                    }
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -68,13 +71,15 @@ class MainActivity : FragmentActivity() {
                         composable("signup") {
                             val signupViewModel: SignupViewModel = viewModel()
                             val signupState by signupViewModel.state.collectAsState()
+                            val signupUser by signupViewModel.registeredUser.collectAsState()
 
                             SignupScreen(
                                 viewModel = signupViewModel,
                                 onSignupSuccess = {
-                                    val userId = signupState.userId ?: 1
-                                    navigationViewModel.setCurrentUser(userId)
-                                    cartViewModel.setCurrentUser(userId)
+                                    signupUser?.let { user ->
+                                        navigationViewModel.setCurrentUser(user)
+                                        cartViewModel.setCurrentUser(user.id)
+                                    }
                                     navController.navigate("home") {
                                         popUpTo("login") { inclusive = true }
                                     }
@@ -86,9 +91,12 @@ class MainActivity : FragmentActivity() {
                         }
 
                         composable("home") {
+                            val currentUser by navigationViewModel.currentUser.collectAsState()
+
                             HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 cartViewModel = cartViewModel,
+                                currentUser = currentUser,
                                 onLogout = {
                                     navigationViewModel.logout()
                                     navController.navigate("login") {
@@ -100,6 +108,9 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onNavigateToQRScanner = {
                                     navController.navigate("qr_scanner")
+                                },
+                                onNavigateToStores = {
+                                    navController.navigate("stores")
                                 }
                             )
                         }
@@ -127,6 +138,17 @@ class MainActivity : FragmentActivity() {
                                     // Simplemente regresar al home sin pasar el productId
                                     navController.popBackStack()
                                 }
+                            )
+                        }
+
+                        composable("stores") {
+                            val currentUser by navigationViewModel.currentUser.collectAsState()
+                            StoresScreen(
+                                onBackPressed = {
+                                    navController.popBackStack()
+                                },
+                                userLatitude = currentUser?.latitude ?: -33.0243,
+                                userLongitude = currentUser?.longitude ?: -71.5518
                             )
                         }
                     }

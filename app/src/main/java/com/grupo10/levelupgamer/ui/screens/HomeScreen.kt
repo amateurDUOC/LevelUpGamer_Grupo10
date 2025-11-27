@@ -24,6 +24,9 @@ import com.grupo10.levelupgamer.ui.components.ProductCard
 import com.grupo10.levelupgamer.ui.components.ProductGridCard
 import com.grupo10.levelupgamer.viewmodel.CartViewModel
 import com.grupo10.levelupgamer.viewmodel.HomeViewModel
+import com.grupo10.levelupgamer.viewmodel.StoreViewModel
+import com.grupo10.levelupgamer.model.User
+import com.grupo10.levelupgamer.ui.components.StoreRecommendationCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,12 +36,21 @@ fun HomeScreen(
     onLogout: () -> Unit = {},
     onNavigateToCart: () -> Unit = {},
     onNavigateToQRScanner: () -> Unit = {},
+    onNavigateToStores: () -> Unit = {},
     cartViewModel: CartViewModel = viewModel(),
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    storeViewModel: StoreViewModel = viewModel(),
+    currentUser: User? = null
 ) {
     val homeState by homeViewModel.uiState.collectAsState()
+    val storeState by storeViewModel.uiState.collectAsState()
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Actualizar la tienda más cercana cuando cambia el usuario
+    LaunchedEffect(currentUser) {
+        storeViewModel.updateNearestStore(currentUser)
+    }
 
     // Estado para controlar el drawer
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -137,6 +149,18 @@ fun HomeScreen(
                     fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
+            }
+
+            // Tarjeta de recomendación de tienda cercana
+            storeState.nearestStore?.let { store ->
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StoreRecommendationCard(
+                        store = store,
+                        distance = storeViewModel.getFormattedDistance(storeState.distanceToNearest),
+                        onViewStoresClick = onNavigateToStores
+                    )
+                }
             }
 
             // Sección de Productos en Oferta
