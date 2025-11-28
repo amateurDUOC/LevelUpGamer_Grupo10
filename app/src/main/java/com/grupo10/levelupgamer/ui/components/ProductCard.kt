@@ -224,76 +224,71 @@ fun ProductGridCard(
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(10.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = product.name,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 16.sp
-                    )
+                // Nombre del producto
+                Text(
+                    text = product.name,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    lineHeight = 16.sp,
+                    modifier = Modifier.heightIn(min = 32.dp)
+                )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                // Categoría
+                Text(
+                    text = product.category.name,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
+                // Precios
+                if (product.hasDiscount) {
                     Text(
-                        text = product.category.name,
+                        text = formatPrice(product.price),
                         fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        textDecoration = TextDecoration.LineThrough
+                    )
+                    Text(
+                        text = formatPrice(product.finalPrice),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Red
+                    )
+                } else {
+                    Text(
+                        text = formatPrice(product.price),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
-                Column {
-                    if (product.hasDiscount) {
-                        Text(
-                            text = formatPrice(product.price),
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            textDecoration = TextDecoration.LineThrough
-                        )
-                        Text(
-                            text = formatPrice(product.finalPrice),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Red
-                        )
-                    } else {
-                        Text(
-                            text = formatPrice(product.price),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = { onAddToCart(product) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 40.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
-                    ) {
-                        Text(
-                            text = "Agregar",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
+                // Botón agregar
+                Button(
+                    onClick = { onAddToCart(product) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 40.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
+                ) {
+                    Text(
+                        text = "Agregar",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        maxLines = 1
+                    )
                 }
             }
         }
