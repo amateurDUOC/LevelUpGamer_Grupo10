@@ -29,7 +29,6 @@ fun ProductCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
             .clickable { onProductClick(product) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -39,14 +38,15 @@ fun ProductCard(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp)
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.Top
         ) {
             // Imagen placeholder del producto
             Box(
                 modifier = Modifier
                     .width(140.dp)
-                    .fillMaxHeight()
+                    .height(160.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
@@ -81,8 +81,8 @@ fun ProductCard(
             // Información del producto
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f),
+                    .fillMaxWidth()
+                    .padding(start = 12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // Nombre y categoría
@@ -146,16 +146,21 @@ fun ProductCard(
                     // Botón agregar al carrito
                     Button(
                         onClick = { onAddToCart(product) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 40.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        contentPadding = PaddingValues(vertical = 8.dp)
+                        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 12.dp)
                     ) {
                         Text(
                             text = "Agregar al carrito",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            maxLines = 1
                         )
                     }
                 }
@@ -174,7 +179,6 @@ fun ProductGridCard(
     Card(
         modifier = modifier
             .width(160.dp)
-            .height(if (product.hasDiscount) 270.dp else 250.dp)
             .clickable { onProductClick(product) },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(
@@ -183,7 +187,7 @@ fun ProductGridCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth()
         ) {
             // Imagen placeholder
             Box(
@@ -273,16 +277,21 @@ fun ProductGridCard(
 
                     Button(
                         onClick = { onAddToCart(product) },
-                        modifier = Modifier.fillMaxWidth().height(36.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 40.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        contentPadding = PaddingValues(vertical = 0.dp)
+                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
                     ) {
                         Text(
                             text = "Agregar",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            maxLines = 1
                         )
                     }
                 }

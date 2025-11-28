@@ -39,7 +39,8 @@ fun QRScannerScreen(
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit = {},
     onProductFound: (Int) -> Unit = {},
-    viewModel: QRScannerViewModel = viewModel()
+    viewModel: QRScannerViewModel = viewModel(),
+    cartViewModel: com.grupo10.levelupgamer.viewmodel.CartViewModel
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
@@ -99,6 +100,10 @@ fun QRScannerScreen(
                         },
                         onViewProduct = {
                             onProductFound(scannedProduct.id)
+                        },
+                        onAddToCart = {
+                            cartViewModel.addToCart(scannedProduct)
+                            viewModel.resetScanner()
                         },
                         onClose = onBackPressed
                     )
@@ -305,6 +310,7 @@ fun ProductFoundView(
     product: com.grupo10.levelupgamer.model.Product,
     onScanAgain: () -> Unit,
     onViewProduct: () -> Unit,
+    onAddToCart: () -> Unit,
     onClose: () -> Unit
 ) {
     Column(
@@ -399,7 +405,26 @@ fun ProductFoundView(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botones
+        // Botón principal: Agregar al carrito
+        Button(
+            onClick = onAddToCart,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = product.stock > 0,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        ) {
+            Text(
+                text = if (product.stock > 0) "Agregar al carrito" else "Sin stock",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Botones secundarios
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -411,11 +436,11 @@ fun ProductFoundView(
                 Text("Escanear otro")
             }
 
-            Button(
+            OutlinedButton(
                 onClick = onViewProduct,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Ver producto")
+                Text("Ver detalles")
             }
         }
 

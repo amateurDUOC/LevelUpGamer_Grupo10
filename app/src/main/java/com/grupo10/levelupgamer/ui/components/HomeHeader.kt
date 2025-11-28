@@ -53,28 +53,31 @@ fun HomeHeader(
                 )
 
                 // Campana de notificaciones
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f))
-                        .clickable { onNotificationClick() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_notification_bell),
-                        contentDescription = "Notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
+                // Botón de notificaciones con badge
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f))
+                            .clickable { onNotificationClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_notification_bell),
+                            contentDescription = "Notificaciones",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
 
-                    // Badge con contador de notificaciones
+                    // Badge con contador de notificaciones - superpuesto
                     if (notificationCount > 0) {
                         Box(
                             modifier = Modifier
-                                .size(20.dp)
+                                .size(18.dp)
                                 .align(Alignment.TopEnd)
-                                .offset(x = 4.dp, y = (-4).dp)
+                                .offset(x = (-2).dp, y = 2.dp)
                                 .clip(CircleShape)
                                 .background(Color.Red),
                             contentAlignment = Alignment.Center
@@ -82,7 +85,7 @@ fun HomeHeader(
                             Text(
                                 text = if (notificationCount > 9) "9+" else notificationCount.toString(),
                                 color = Color.White,
-                                fontSize = 10.sp,
+                                fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }

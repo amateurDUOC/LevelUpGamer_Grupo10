@@ -42,15 +42,22 @@ fun HomeScreen(
     onNavigateToCart: () -> Unit = {},
     onNavigateToQRScanner: () -> Unit = {},
     onNavigateToStores: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
     cartViewModel: CartViewModel = viewModel(),
     homeViewModel: HomeViewModel = viewModel(),
     storeViewModel: StoreViewModel = viewModel(),
+    navigationViewModel: com.grupo10.levelupgamer.viewmodel.NavigationViewModel,
     currentUser: User? = null
 ) {
     val homeState by homeViewModel.uiState.collectAsState()
     val storeState by storeViewModel.uiState.collectAsState()
     var showNotificationDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Refrescar datos del usuario desde el backend cada vez que se abre HomeScreen
+    LaunchedEffect(Unit) {
+        navigationViewModel.refreshUserFromBackend()
+    }
 
     // Actualizar la tienda más cercana cuando cambia el usuario
     LaunchedEffect(currentUser) {
@@ -89,7 +96,8 @@ fun HomeScreen(
                     scope.launch {
                         drawerState.close()
                     }
-                }
+                },
+                onNavigateToProfile = onNavigateToProfile
             )
         }
     ) {

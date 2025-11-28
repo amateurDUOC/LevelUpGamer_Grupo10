@@ -9,32 +9,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class NavigationViewModel : ViewModel() {
-    private val _currentUser = MutableStateFlow<User?>(null)
-    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+data class ProfileUIState(
+    val user: User? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
-    private val _isUserAuthenticated = MutableStateFlow(false)
-    val isUserAuthenticated: StateFlow<Boolean> = _isUserAuthenticated.asStateFlow()
+class ProfileViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(ProfileUIState())
+    val uiState: StateFlow<ProfileUIState> = _uiState.asStateFlow()
 
-    fun setCurrentUser(user: User) {
-        _currentUser.value = user
-        _isUserAuthenticated.value = true
-    }
-
-    fun updateUserAddress(address: String, latitude: Double, longitude: Double) {
-        _currentUser.value?.let { user ->
-            _currentUser.value = user.copy(
-                address = address,
-                latitude = latitude,
-                longitude = longitude
-            )
-        }
-    }
-
-    fun refreshUserFromBackend() {
+    fun loadUserProfile() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
             try {
                 val response = RetrofitClient.authApi.getCurrentUser()
+
                 if (response.isSuccessful && response.body()?.success == true) {
                     val userWrapper = response.body()!!.data!!
                     val user = User(
@@ -45,19 +36,28 @@ class NavigationViewModel : ViewModel() {
                         latitude = userWrapper.user.latitude,
                         longitude = userWrapper.user.longitude
                     )
-                    _currentUser.value = user
+                    _uiState.value = _uiState.value.copy(
+                        user = user,
+                        isLoading = false,
+                        error = null
+                    )
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "No se pudo cargar el perfil"
+                    )
                 }
             } catch (e: Exception) {
-                // Mantener el usuario actual si falla la actualización
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Error de conexión: ${e.message}"
+                )
             }
         }
     }
 
-    fun logout() {
-        _currentUser.value = null
-        _isUserAuthenticated.value = false
+    fun refreshProfile() {
+        loadUserProfile()
     }
-
-    fun getCurrentUser(): User? = _currentUser.value
 }
 

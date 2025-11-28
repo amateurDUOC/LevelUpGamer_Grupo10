@@ -1,32 +1,101 @@
 package com.grupo10.levelupgamer.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.grupo10.levelupgamer.data.mapper.toDomain
+import com.grupo10.levelupgamer.data.repository.StoreRepository
+import com.grupo10.levelupgamer.data.repository.StoreResult
 import com.grupo10.levelupgamer.model.Store
-import com.grupo10.levelupgamer.model.StoresData
 import com.grupo10.levelupgamer.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.*
 
 data class StoreUIState(
     val nearestStore: Store? = null,
-    val allStores: List<Store> = StoresData.stores,
-    val distanceToNearest: Double = 0.0
+    val allStores: List<Store> = emptyList(),
+    val distanceToNearest: Double = 0.0,
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 class StoreViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(StoreUIState())
     val uiState: StateFlow<StoreUIState> = _uiState.asStateFlow()
 
+    private val repository = StoreRepository()
+
+    init {
+        loadStores()
+    }
+
+    fun loadStores() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            when (val result = repository.getAllStores()) {
+                is StoreResult.Success -> {
+                    val stores = result.stores.toDomain()
+                    _uiState.value = _uiState.value.copy(
+                        allStores = stores,
+                        isLoading = false,
+                        error = null
+                    )
+                }
+                is StoreResult.NetworkError -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Error de conexión con el servidor"
+                    )
+                }
+                is StoreResult.ServerError -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Error del servidor"
+                    )
+                }
+                is StoreResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun updateNearestStore(user: User?) {
-        if (user == null || (user.latitude == 0.0 && user.longitude == 0.0)) {
-            _uiState.value = StoreUIState()
+        if (user == null || user.latitude == null || user.longitude == null) {
             return
         }
 
-        val storesWithDistance = StoresData.stores.map { store ->
+        viewModelScope.launch {
+            when (val result = repository.getNearestStore(user.latitude, user.longitude)) {
+                is StoreResult.NearestStoreSuccess -> {
+                    val store = result.store.toDomain()
+                    val distance = result.store.distance ?: 0.0
+                    _uiState.value = _uiState.value.copy(
+                        nearestStore = store,
+                        distanceToNearest = distance
+                    )
+                }
+                else -> {
+                    // Fallback: calcular manualmente si falla el backend
+                    calculateNearestStoreManually(user)
+                }
+            }
+        }
+    }
+
+    private fun calculateNearestStoreManually(user: User) {
+        val stores = _uiState.value.allStores
+        if (stores.isEmpty() || user.latitude == null || user.longitude == null) return
+
+        val storesWithDistance = stores.map { store ->
             val distance = calculateDistance(
                 user.latitude, user.longitude,
                 store.latitude, store.longitude
@@ -37,9 +106,8 @@ class StoreViewModel : ViewModel() {
         val nearest = storesWithDistance.minByOrNull { it.second }
 
         nearest?.let {
-            _uiState.value = StoreUIState(
+            _uiState.value = _uiState.value.copy(
                 nearestStore = it.first,
-                allStores = StoresData.stores,
                 distanceToNearest = it.second
             )
         }

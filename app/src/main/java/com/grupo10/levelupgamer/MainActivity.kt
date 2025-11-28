@@ -17,6 +17,7 @@ import com.grupo10.levelupgamer.ui.screens.AnimatedSplashScreen
 import com.grupo10.levelupgamer.ui.screens.CartScreen
 import com.grupo10.levelupgamer.ui.screens.HomeScreen
 import com.grupo10.levelupgamer.ui.screens.LoginScreen
+import com.grupo10.levelupgamer.ui.screens.ProfileScreen
 import com.grupo10.levelupgamer.ui.screens.QRScannerScreen
 import com.grupo10.levelupgamer.ui.screens.SignupScreen
 import com.grupo10.levelupgamer.ui.screens.StoresScreen
@@ -102,6 +103,7 @@ class MainActivity : FragmentActivity() {
                             HomeScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 cartViewModel = cartViewModel,
+                                navigationViewModel = navigationViewModel,
                                 currentUser = currentUser,
                                 onLogout = {
                                     cartViewModel.clearCartOnLogout()
@@ -118,6 +120,9 @@ class MainActivity : FragmentActivity() {
                                 },
                                 onNavigateToStores = {
                                     navController.navigate("stores")
+                                },
+                                onNavigateToProfile = {
+                                    navController.navigate("profile")
                                 }
                             )
                         }
@@ -138,6 +143,7 @@ class MainActivity : FragmentActivity() {
                             val qrViewModel: QRScannerViewModel = viewModel()
                             QRScannerScreen(
                                 viewModel = qrViewModel,
+                                cartViewModel = cartViewModel,
                                 onBackPressed = {
                                     navController.popBackStack()
                                 },
@@ -156,6 +162,14 @@ class MainActivity : FragmentActivity() {
                                 },
                                 userLatitude = currentUser?.latitude ?: -33.0243,
                                 userLongitude = currentUser?.longitude ?: -71.5518
+                            )
+                        }
+
+                        composable("profile") {
+                            ProfileScreen(
+                                onBackPressed = {
+                                    navController.popBackStack()
+                                }
                             )
                         }
                     }

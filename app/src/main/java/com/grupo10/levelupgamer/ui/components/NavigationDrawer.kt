@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun NavigationDrawerContent(
     onDismiss: () -> Unit,
+    onNavigateToProfile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     ModalDrawerSheet(
@@ -41,7 +42,7 @@ fun NavigationDrawerContent(
                 icon = Icons.Default.Person,
                 label = "Mi Perfil",
                 onClick = {
-                    // TODO: Navegar a Mi Perfil
+                    onNavigateToProfile()
                     onDismiss()
                 }
             )
