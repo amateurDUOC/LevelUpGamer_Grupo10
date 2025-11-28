@@ -1,6 +1,7 @@
 package com.grupo10.levelupgamer.data.repository
 
 import com.grupo10.levelupgamer.data.remote.RetrofitClient
+import com.grupo10.levelupgamer.data.remote.api.StoreApiService
 import com.grupo10.levelupgamer.data.remote.dto.StoreDto
 
 sealed class StoreResult {
@@ -11,11 +12,13 @@ sealed class StoreResult {
     data class Error(val message: String) : StoreResult()
 }
 
-class StoreRepository {
+class StoreRepository(
+    private val api: StoreApiService = RetrofitClient.storeApi
+) {
 
     suspend fun getAllStores(): StoreResult {
         return try {
-            val response = RetrofitClient.storeApi.getAllStores()
+            val response = api.getAllStores()
 
             if (response.isSuccessful && response.body() != null) {
                 val stores = response.body()!!.data
@@ -36,9 +39,9 @@ class StoreRepository {
 
     suspend fun getNearestStore(latitude: Double, longitude: Double): StoreResult {
         return try {
-            val response = RetrofitClient.storeApi.getNearestStore(latitude, longitude)
+            val response = api.getNearestStore(latitude, longitude)
 
-            if (response.isSuccessful && response.body()?.success == true) {
+            if (response.isSuccessful && response.body()?.success == true && response.body()?.data != null) {
                 val store = response.body()!!.data!!
                 StoreResult.NearestStoreSuccess(store)
             } else {

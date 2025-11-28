@@ -1,6 +1,7 @@
 package com.grupo10.levelupgamer.data.repository
 
 import com.grupo10.levelupgamer.data.remote.RetrofitClient
+import com.grupo10.levelupgamer.data.remote.api.ProductApiService
 import com.grupo10.levelupgamer.data.remote.dto.ProductDto
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,7 +13,9 @@ sealed class ProductResult {
     object ServerError : ProductResult()
 }
 
-class ProductRepository {
+class ProductRepository(
+    private val api: ProductApiService = RetrofitClient.productApi
+) {
 
     suspend fun getAllProducts(
         category: String? = null,
@@ -20,7 +23,7 @@ class ProductRepository {
         hasDiscount: Boolean? = null
     ): ProductResult = withContext(Dispatchers.IO) {
         try {
-            val response = RetrofitClient.productApi.getAllProducts(
+            val response = api.getAllProducts(
                 category = category,
                 search = search,
                 hasDiscount = hasDiscount
@@ -45,7 +48,7 @@ class ProductRepository {
 
     suspend fun getProductById(id: Int): ProductResult = withContext(Dispatchers.IO) {
         try {
-            val response = RetrofitClient.productApi.getProductById(id)
+            val response = api.getProductById(id)
 
             if (response.isSuccessful && response.body()?.data != null) {
                 val product = response.body()!!.data!!

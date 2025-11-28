@@ -76,6 +76,7 @@ data class ProductsResponse(
     val data: List<ProductDto>
 )
 
+
 // Store DTOs
 data class StoreDto(
     val id: Int,
@@ -93,6 +94,7 @@ data class StoresResponse(
     val count: Int,
     val data: List<StoreDto>
 )
+
 
 // Cart DTOs
 data class CartItemDto(

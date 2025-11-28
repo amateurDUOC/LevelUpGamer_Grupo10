@@ -10,8 +10,11 @@ data class CartItem(
     val productId: Int,
     val productName: String,
     val productPrice: Double,
-    val productImage: String,
+    val productImage: String = "",
     val quantity: Int,
     val userId: Int
-)
+) {
+    val subtotal: Double
+        get() = productPrice * quantity
+}
 
