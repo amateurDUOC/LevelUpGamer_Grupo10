@@ -1,10 +1,13 @@
 import java.util.Properties
 import java.io.FileInputStream
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.gradle.testing.jacoco.tasks.JacocoReport
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    jacoco
 }
 
 android {
@@ -35,6 +38,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -65,6 +71,30 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+            all {
+                it.jvmArgs(
+                    "-XX:+IgnoreUnrecognizedVMOptions",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util.stream=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                    "--add-opens=java.base/java.net=ALL-UNNAMED",
+                    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED",
+                    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED"
+                )
+
+                it.maxParallelForks = 1
+            }
         }
     }
 }
@@ -111,6 +141,7 @@ dependencies {
     testImplementation("io.mockk:mockk-android:1.13.8")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("app.cash.turbine:turbine:1.0.0")
+    testImplementation("org.robolectric:robolectric:4.11.1")
 
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.core)
@@ -118,5 +149,53 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Configuración de JaCoCo para excluir clases que no deben testearse
+tasks.withType<Test> {
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf(
+            "jdk.internal.*"
+        )
+    }
+}
+
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileFilter = listOf(
+        "**/MainActivity*",
+        "**/api/*ApiService*",
+        "**/dto/**",
+        "**/UserWrapper*",
+        "**/ui/screens/**",
+        "**/ui/theme/**",
+        "**/ui/components/**",
+        "**/BuildConfig*",
+        "**/R.class",
+        "**/R\$*.class",
+        "**/*\$*",
+        "**/RetrofitClient*",
+        "**/data/database/**",
+        "**/data/remote/service/**",
+        "**/*Dao*",
+        "**/*Database*"
+    )
+
+    val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    sourceDirectories.setFrom(files("${projectDir}/src/main/java"))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree(layout.buildDirectory.get()) {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    })
 }
 
