@@ -1,112 +1,162 @@
-# LevelUpGamer - Grupo 10
+# LevelUpGamer
 
-Aplicación Android de e-commerce para productos gaming desarrollada con Kotlin y Jetpack Compose.
+## Integrantes
 
-## Descripción
+- Onésimo Aguirre
+- Manuel Alfaro
+- Alex Caica
 
-Plataforma móvil para la tienda Level-Up Gamer con:
-- Autenticación de usuarios (JWT)
-- Catálogo de productos con búsqueda y filtros
-- Carrito de compras
-- Geocodificación automática de direcciones
-- Integración con backend Node.js + MongoDB
+## Descripción del Proyecto
 
-## Requisitos
+LevelUpGamer es una aplicación móvil Android desarrollada en Kotlin para la compra de videojuegos y accesorios gaming. La aplicación permite a los usuarios explorar productos, gestionar su carrito de compras, buscar tiendas cercanas y realizar pedidos.
 
-- Android Studio Hedgehog 2023.1.1+
-- JDK 17
-- Android SDK API 24-34
-- Node.js 18+ (backend)
-- MongoDB (backend)
+## Funcionalidades
 
-## Configuración
+### Autenticación y Usuario
+- Registro de nuevos usuarios
+- Inicio de sesión
+- Consulta de información del usuario actual
+- Actualización de dirección del usuario
 
-Correr el backend localmente y configurar la base url en el siguiente archivo:
+### Catálogo de Productos
+- Listado de todos los productos disponibles
+- Filtrado por categoría
+- Búsqueda de productos por nombre
+- Filtrado de productos con descuento
+- Visualización de detalles de producto
 
-### App Android
+### Gestión de Carrito
+- Agregar productos al carrito
+- Actualizar cantidad de productos en el carrito
+- Eliminar productos del carrito
+- Limpiar carrito completo
+- Visualización del carrito de compras
 
-Editar `local.properties`:
+### Tiendas
+- Listado de todas las tiendas
+- Búsqueda de tienda más cercana por geolocalización
+
+### Geocodificación
+- Búsqueda de direcciones mediante coordenadas
+- Validación de direcciones
+
+## Endpoints Utilizados
+
+### API del Microservicio (Backend Propio)
+
+#### Autenticación
+- `POST /api/auth/register` - Registro de usuario
+- `POST /api/auth/login` - Inicio de sesión
+- `GET /api/auth/me` - Obtener usuario actual
+- `PUT /api/auth/update-address` - Actualizar dirección
+
+#### Productos
+- `GET /api/products` - Obtener todos los productos (con filtros opcionales)
+- `GET /api/products/{id}` - Obtener producto por ID
+
+#### Tiendas
+- `GET /api/stores` - Obtener todas las tiendas
+- `GET /api/stores/nearest` - Obtener tienda más cercana
+
+#### Carrito
+- `GET /api/cart` - Obtener carrito del usuario
+- `POST /api/cart` - Agregar producto al carrito
+- `PUT /api/cart/{id}` - Actualizar item del carrito
+- `DELETE /api/cart/{id}` - Eliminar item del carrito
+- `DELETE /api/cart` - Limpiar carrito completo
+
+### API Externa
+
+#### Nominatim (OpenStreetMap)
+- `GET /search` - Búsqueda de direcciones y geocodificación
+  - Base URL: https://nominatim.openstreetmap.org/
+
+## Pasos para Ejecutar
+
+### Requisitos Previos
+
+- Android Studio Hedgehog o superior
+- JDK 17 o superior
+- Gradle 8.0 o superior
+- Dispositivo Android o emulador con API 26 (Android 8.0) o superior
+
+### Configuración
+
+1. Clonar el repositorio:
+```bash
+git clone <url-del-repositorio>
+cd LevelUpGamer_Grupo10
+```
+
+2. Crear el archivo `local.properties` en la raíz del proyecto con las siguientes variables:
 ```properties
-# Emulador
 BASE_URL=http://10.0.2.2:3000/api/
 NOMINATIM_URL=https://nominatim.openstreetmap.org/
-
-# Dispositivo físico (reemplazar con tu IP)
-BASE_URL=http://192.168.1.X:3000/api/
 ```
 
-## Compilación
+3. Sincronizar el proyecto con Gradle en Android Studio.
 
-1. Abrir proyecto en Android Studio
-2. Sync Gradle
-3. Build > Clean Project
-4. Build > Rebuild Project
-5. Run (Shift+F10)
+4. Ejecutar el backend del microservicio (debe estar corriendo en el puerto 3000).
 
-## Solución de Problemas
+### Ejecución
 
-### Error: "cleartext communication not permitted"
+#### Modo Debug
+1. Conectar un dispositivo Android o iniciar un emulador
+2. Seleccionar el módulo `app` en Android Studio
+3. Hacer clic en el botón Run o usar el atajo `Shift + F10`
 
-Ya está configurado `network_security_config.xml` para permitir HTTP en desarrollo.
+### Ejecutar Tests Unitarios
 
-Si persiste:
-1. Build > Clean Project
-2. Build > Rebuild Project
-3. Desinstalar app del emulador
-4. Run nuevamente
-
-### Backend no responde
-
-Verificar:
-- URL correcta en `local.properties`
-- Emulador: usar `10.0.2.2`
-- Dispositivo físico: usar IP local
-
-## Credenciales de Prueba
-
-```
-Email: admin@duoc.cl
-Password: 123456
+```bash
+./gradlew testDebugUnitTest
 ```
 
-## Arquitectura
+### Generar Reporte de Cobertura con Jacoco
 
-### Frontend
-- Kotlin 1.9.10
+```bash
+./gradlew clean testDebugUnitTest jacocoTestReport
+```
+
+El reporte se generará en: `app/build/reports/jacoco/testDebugUnitTestCoverage/html/index.html`
+
+## Capturas
+
+### APK Firmado
+![APK Generado](capturas/alerta_generar_apk.png)
+![APK Firmado](capturas/apk-firmado.png)
+
+### Archivo JKS
+![Archivo JKS](capturas/jks-archivo.png)
+
+### Cobertura de Código con Jacoco
+![Cobertura Jacoco](capturas/cobertura-jacoco.png)
+
+## Tecnologías Utilizadas
+
+- Kotlin
 - Jetpack Compose
-- Material Design 3
-- MVVM Pattern
-- Room Database (caché local)
-- Retrofit + OkHttp (networking)
-- Coroutines + StateFlow
-
-### Backend
-- Express.js
-- MongoDB + Mongoose
-- JWT Authentication
-- bcryptjs
-
-### APIs Externas
-- OpenStreetMap Nominatim (geocodificación)
-- osmdroid (mapas)
+- Retrofit para consumo de APIs
+- Coroutines para programación asíncrona
+- Hilt para inyección de dependencias (si aplica)
+- JUnit y Mockito para testing
+- Jacoco para cobertura de código
 
 ## Estructura del Proyecto
 
 ```
-app/src/main/java/com/grupo10/levelupgamer/
-├── data/
-│   ├── dao/              # Data Access Objects
-│   ├── database/         # Room Database
-│   ├── remote/           # API, DTOs, Services
-│   ├── repository/       # Repositorios
-│   └── mapper/           # Mappers DTO <-> Domain
-├── model/                # Modelos de dominio
-├── ui/
-│   ├── screens/          # Pantallas
-│   ├── components/       # Componentes reutilizables
-│   └── navigation/       # Navegación
-├── viewmodel/            # ViewModels
-└── MainActivity.kt
+app/
+├── src/
+│   ├── main/
+│   │   ├── java/com/grupo10/levelupgamer/
+│   │   │   ├── data/
+│   │   │   │   └── remote/
+│   │   │   │       ├── api/        # Interfaces de Retrofit
+│   │   │   │       └── dto/        # Data Transfer Objects
+│   │   │   ├── domain/             # Modelos de dominio
+│   │   │   ├── ui/                 # Pantallas y componentes UI
+│   │   │   └── MainActivity.kt
+│   │   └── res/                    # Recursos (layouts, drawables, etc.)
+│   └── test/                       # Tests unitarios
+└── build.gradle.kts
 ```
-
 
